@@ -19,7 +19,7 @@ glm.probs <- predict(model , newdata = test , type = "response")
 glm.pred <- rep(0, nrow(test))
 glm.pred[glm.probs > .5] <- 1
 table(glm.pred , DEATH_EVENT)
-t1=tibble(Pred=c("Predicted_N0","Predicted_YES"),Actual_NO=c(50,10),Actual_YES=c(6,23))
+t1=tibble(.=c("Predicted_N0","Predicted_YES"),Actual_NO=c(50,10),Actual_YES=c(6,23))
 mean(glm.pred == DEATH_EVENT)
 
 test_con_mat = confusionMatrix(factor(glm.pred) , factor(DEATH_EVENT))
@@ -30,7 +30,7 @@ as.numeric(test_roc$auc)
 formattable(
   t1,
   align = c("l", "c","c"),
-  list("Pred" = formatter("span", style = ~style(color = "blue", font.weight = "bold")),
+  list("." = formatter("span", style = ~style(color = "blue", font.weight = "bold")),
        "Actual_NO" = color_tile(customRed, customGreen),
        "Actual_YES" = color_tile(customRed, customGreen)))
 
