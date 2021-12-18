@@ -3,15 +3,9 @@ library(pROC)
 library(pacman)
 p_load(pacman, tidyverse, rio, formattable)
 
-customGreen0 = "#DeF7E9"
-
 customGreen = "#71CA97"
-
-customRed = "#ff7f7f"
-
 customBlue = "#009dff"
-
-customBlue0 = "#8cd3ff"
+customRed = "#ff7f7f"
 # Prep Training and Test data.
 set.seed(100)
 trainDataIndex <- createDataPartition(dataset$DEATH_EVENT, p=0.7, list = F)  # 70% training data
@@ -37,6 +31,6 @@ formattable(
   t1,
   align = c("l", "c","c"),
   list("Pred" = formatter("span", style = ~style(color = "blue", font.weight = "bold")),
-       "Actual_NO" = color_tile(customBlue, customGreen),
-       "Actual_YES" = color_tile(customBlue, customGreen)))
+       "Actual_NO" = color_tile(customRed, customGreen),
+       "Actual_YES" = color_tile(customRed, customGreen)))
 
