@@ -1,27 +1,80 @@
 library(dplyr)
 library(ggplot2)
-mytheme <- theme(plot.title = element_text(family = "Helvetica", face = "bold", size = (15), hjust = (0.5)), 
-                 legend.title = element_text(colour = "steelblue",  face = "bold.italic", family = "Helvetica"), 
-                 legend.text = element_text(face = "italic", colour="steelblue4",family = "Helvetica", size = (10)), 
-                 axis.title = element_text(face = "bold",family = "Helvetica", size = (12), colour = "steelblue4"),
-                 axis.text = element_text(face = "bold",family = "Courier", colour = "cornflowerblue", size = (10)))
 
-kolkata_air = city_day %>% filter(V1 == "Kolkata")
-NO2= as.numeric(kolkata_air$V6)
-NO2=na.omit(NO2)
-hist(NO2, probability = TRUE)
-lines(density(NO2,bw = 2.5, kernel = "gaussian"),col = 4, lwd=3)
-lines(density(NO2, bw = 2.5, kernel = "epanechnikov"), col = 2, lwd=3)
-rug(NO2)
-CO= as.numeric(kolkata_air$V9)
-CO=na.omit(CO)
-hist(CO, probability = TRUE)
-lines(density(CO, bw = 0.12, kernel = "gaussian"), col = 4, lwd=3)
-lines(density(CO, bw = 0.12, kernel = "epanechnikov"), col = 2, lwd=3)
+city_day[,3:15]=sapply(city_day[,3:15],as.numeric)
+sapply(city_day,class)
+AQI= city_day[which(city_day[,15]< i00),][,15]
+AQI=na.omit(AQI)
+hist(AQI,col = "steelblue",main = "Histogram and density plot of AQI" , border = "black", probability = TRUE)
+t1=density(AQI,bw = 2, kernel = "epanechnikov")
+t2=density(AQI,bw = 8.5, kernel = "epanechnikov")
+t3=density(AQI,bw = 20.5, kernel = "epanechnikov")
+lines(t1, col = 7, lwd=2.5)
+lines(t2, col = 2, lwd=2.5)
+lines(t3, col = 5, lwd=2)
+legend("topright", legend = c("h=2","h=8.5","h=20.5"),col = c(7,2,5),lwd=c(1,1,1))
+rug(AQI)
+t1
+t2
+CO= as.numeric(city_day$V10)
+CO= na.omit(CO)
+hist(CO,col = "lightgray",breaks = 40, probability = TRUE)
+lines(density(CO, bw = 0.5, kernel = "gaussian"), col = 4, lwd=3)
+lines(density(CO, bw = 0.5, kernel = "epanechnikov"), col = 2, lwd=3)
+
 rug(CO)
-ggplot(data = city_day, mapping = aes(x = V9, fill = V16)) +
-         geom_boxplot() +
-         ggtitle("Boxplot") +
-         #labs(y = "Total Online Marks (%)") +
-         theme_classic() + 
-         mytheme 
+
+#classification
+i=7
+city_day=city_day %>% filter(!is.na(city_day[,i])) %>% filter(V16 !="")
+severe=city_day %>% filter(V16=="Severe") 
+very_poor=city_day %>% filter(V16=="Very Poor") 
+poor=city_day %>% filter(V16=="Poor") 
+moderate=city_day %>% filter(V16=="Moderate") 
+satisfactory=city_day %>% filter(V16=="Satisfactory") 
+good=city_day %>% filter(V16=="Good") 
+
+kd1=density(severe[,i],bw=6)
+kd2=density(very_poor[,i],bw=6)
+kd3=density(poor[,i],bw=4)
+kd4=density(moderate[,i],bw=3)
+kd5=density(satisfactory[,i],bw=2.5)
+kd6=density(good[,i],bw=1.5)
+plot(kd1,col=1,ylim=c(0,0.05),main="Densities for all different classes",xlab="")
+lines(kd2,col=2,lwd=2.5)
+lines(kd3,col=3,lwd=2.5)
+lines(kd4,col=4,lwd=2.5)
+lines(kd5,col=5,lwd=2.5)
+lines(kd6,col=6,lwd=2.5)
+legend("topright", legend = c("Severe" ,"Very Poor","Poor" ,"Moderate" ,"Satisfactory","Good"),col = 1:6,lwd=rep(1,6))
+
+likelyhood=list()
+likelyhood[[1]] = approx(x = kd1$x,y = kd1$y,city_day$V7, yleft = 0, yright = 0)
+likelyhood[[2]] = approx(x = kd2$x,y = kd2$y,city_day$V7, yleft = 0, yright = 0)
+likelyhood[[3]] = approx(x = kd3$x,y = kd3$y,city_day$V7, yleft = 0, yright = 0)
+likelyhood[[4]] = approx(x = kd4$x,y = kd4$y,city_day$V7, yleft = 0, yright = 0)
+likelyhood[[5]] = approx(x = kd5$x,y = kd5$y,city_day$V7, yleft = 0, yright = 0)
+likelyhood[[6]] = approx(x = kd6$x,y = kd6$y,city_day$V7, yleft = 0, yright = 0)
+prior=c()
+prior[1]=nrow(severe)
+prior[2]=nrow(very_poor)
+prior[3]=nrow(poor)
+prior[4]=nrow(moderate)
+prior[5]=nrow(satisfactory)
+prior[6]=nrow(good)
+prior=prior/sum(prior)
+posterior=matrix(0, ncol = 6, nrow = nrow(city_day))
+predicted=c()
+for(i in 1:6)
+  posterior[,i]=prior[i]*likelyhood[[i]]$y
+for (i in 1:nrow(city_day)) 
+  predicted[i]=which.max(posterior[i,])
+X=city_day$V16
+X=gsub("Severe",1,X)
+X=gsub("Very Poor",2,X)
+X=gsub("Poor",3,X)
+X=gsub("Moderate",4,X)
+X=gsub("Satisfactory",5,X)
+X=gsub("Good",6,X)
+X=as.numeric(X)
+sum(X==predicted)/length(X)
