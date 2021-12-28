@@ -1,5 +1,4 @@
 library(dplyr)
-library(ggplot2)
 
 city_day[,3:15]=sapply(city_day[,3:15],as.numeric)
 sapply(city_day,class)
@@ -14,15 +13,6 @@ lines(t2, col = 2, lwd=2.5)
 lines(t3, col = 5, lwd=2)
 legend("topright", legend = c("h=2","h=8.5","h=20.5"),col = c(7,2,5),lwd=c(1,1,1))
 rug(AQI)
-t1
-t2
-CO= as.numeric(city_day$V10)
-CO= na.omit(CO)
-hist(CO,col = "lightgray",breaks = 40, probability = TRUE)
-lines(density(CO, bw = 0.5, kernel = "gaussian"), col = 4, lwd=3)
-lines(density(CO, bw = 0.5, kernel = "epanechnikov"), col = 2, lwd=3)
-
-rug(CO)
 
 #classification
 i=7
